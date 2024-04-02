@@ -1,0 +1,7 @@
+Create a database - contacts (you can give it any name)
+
+Open script create-db.php and edit values for $server, $database, $user and $password
+
+Run the script create-db.php
+
+Delete the create-db.php script once it runs successfully.

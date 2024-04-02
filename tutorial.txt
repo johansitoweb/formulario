@@ -1,0 +1,216 @@
+Get your mysql database connection details.
+
+You will need server name, database name, user name and password.
+
+Create a file create-db.php
+
+Insert the following code
+
+// Make mysql connection 
+
+$server = 'localhost';
+$database = 'contact';
+$user = 'root';
+$password = '';
+
+$conn = new mysqli( $server, $user, $password, $database );
+
+// Check connection for errors
+
+if ( $conn->connect_error ) {
+    die( "Connection failed: " . $conn->connect_error );
+}
+
+
+// Create table to store information from contact form
+
+$sql = "CREATE TABLE contacts (cname VARCHAR(50), email VARCHAR(50),
+    phone VARCHAR(20), msg VARCHAR(750), website VARCHAR(50))";
+
+if ( $conn->query( $sql ) === TRUE ) {
+    echo "Table MyGuests created successfully";
+} else {
+    echo "Error creating table: " . $conn->error;
+}
+
+// Close the connection
+  
+$conn->close();
+
+//
+
+Run the script in broswer. 
+
+http://localhost/create-db.php
+
+If you get an error, then check the script to see if you inserted any wrong value for server, database, user or password.
+
+********************************************
+
+Create a file process-form.php. Keep it blank, we will populate it later.
+
+Create another file index.php
+
+At the top of this file insert following code
+
+<?php require_once('process-form.php'); ?>
+
+This script will handle form submission.
+
+
+Create contact form markup/html
+
+<!-- Contact Form -->
+
+<div class="contact-form">
+    <form action="" method="post">
+        <div>       
+            <input type="text" name="cname" placeholder="Your name">
+        </div>
+        <div>       
+            <input type="text" name="email" placeholder="Your email">
+        </div>   
+        <div>   
+            <input type="text" name="website" placeholder="Your website">
+        </div>
+        <div>       
+            <textarea name="msg" rows="5" placeholder="Write a message..."></textarea>
+        </div>
+        <div>
+            <button>Submit</button>
+        </div>
+    </form>
+</div>
+
+Clicking the submit button will send information in form fields to the script in form "action". It is empty,
+hence the information will be submitted to the current page/url itself.
+
+Test the script
+Run http://localhost/contact.php
+
+Input some values and submit. Data will be submmitted to script process-form.php. Nothing happens at this point because we have not 
+added code to process form data yet.
+
+Open process-form.php
+
+Insert the following code 
+
+<?php // this script will process and insert form data to database.
+
+// Make database connection
+
+require_once('connect-db.php');
+
+// check if form is submitted
+
+if ( isset( $_POST['submitted'] ) ) 
+{
+
+    $cname = $_POST['cname'] ? $_POST['cname'] : '';
+    $email = $_POST['email'] ? $_POST['email'] : '';
+    $phone = $_POST['phone'] ? $_POST['phone'] : '';
+    $msg = $_POST['msg'] ? $_POST['msg'] : '';
+    $website = $_POST['website'] ? $_POST['website'] : '';
+
+    $query = "INSERT INTO contacts (cname, email, phone, msg, website) VALUES(
+        '$cname',
+        '$email',
+        '$phone',
+        '$msg',
+        '$website'
+    )";
+
+    // $conn is the connection object obtained from database connection script above
+
+    if ( $conn->query( $query ) === TRUE ) {
+        echo "Message stored successfully";
+    } else {
+        echo "Error: " . $query . "<br>" . $conn->error;
+    }
+    
+    $conn->close();
+
+}
+
+Go to http://localhost/contact.php again and enter values and submit.
+
+This time you should get a success message that data is stored in database.
+
+Form validation
+
+It is a good practice to not trust user input. That means - treat every user as the bad guy out to destroy your site!
+In reality there are very few bad guys and validation is needed simply to correct rookie user input.
+
+Let us add some validation code.
+
+Create a file validation.php and enter the following code:
+
+$err= []; // array variable to store validation errors
+
+// User name should not be empty
+
+if ( empty ($_POST["cname"] ) ) {  
+    $err[] = "Enter your name";  
+}
+
+// User name should contain only alphabets and white space
+
+if ( ! preg_match ( "/^[a-zA-z]*$/", $_POST["cname"]) ) {  
+    $err[] = "Only alphabets and whitespace are allowed.";               
+}
+
+// Email should be properly formatted.
+
+$email = $_POST ["email"];  
+
+$pattern = "^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$^";  
+
+if ( ! preg_match ( $pattern, $email ) ) {  
+    $err[] = "Enter a valid email";          
+}
+
+// Phone number is optional but should be a numeric value if entered.
+
+if ( isset( $phone = $_POST["phone"] ) )
+if (  ! preg_match ("/^[0-9]*$/", $phone ) ){  
+    $err[] = "Phone number accepts only numeric values.";  
+} 
+
+// Message should not be empty.
+
+if ( empty ($_POST["msg"])) {  
+    $err[] = "Enter a message";  
+}
+
+// Website url is optional but must have in valid format if entered.
+
+if ( isset( $website = $_POST["website"] ) )
+if ( ! preg_match( "/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i", $website ) ) {  
+    $err[] = "Website url is not valid";  
+}
+
+// Print out validation errors (if any)
+
+if (  count( $err ) > 0 ) {
+    foreach( $err as $e ) {
+        echo "<p>$e</p>";
+    }
+}
+
+Include this file in process-form.php inside the post check for form submission
+
+if ( isset( $_POST['submitted'] ) ) 
+{
+    require_once('validation.php');
+    ...
+    ...
+}
+
+Now for a bit of styling. I mostly use bootstrap in my projects. It is easy to setup and use.
+You can skip that and user your own style.
+
+Thats all. If you liked this tutorial then share and like. 
+
+
+
+
